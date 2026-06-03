@@ -1,15 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
-namespace HotelListing.Api.Data
+namespace HotelListing.Api.Data;
+
+public class HotelListingDbContext(DbContextOptions<HotelListingDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-    public class HotelListingDbContext : DbContext
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<Hotel> Hotels { get; set; }
+    public DbSet<ApiKey> ApiKeys { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        public HotelListingDbContext(DbContextOptions<HotelListingDbContext> options) : base(options)
+        base.OnModelCreating(builder);
+
+        builder.Entity<ApiKey>(b =>
         {
-
-        }
-
-        public DbSet<Country> Countries { get; set; }
-        public DbSet<Hotel> Hotels { get; set; }
+            b.HasIndex(k => k.Key).IsUnique();
+        });
     }
 }

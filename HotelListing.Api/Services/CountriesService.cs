@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using HotelListing.Api.Constants;
-using HotelListing.Api.Contracts;
+using HotelListing.Api.Services;
 using HotelListing.Api.Data;
 using HotelListing.Api.DTOs.Country;
 using HotelListing.Api.Results;
 using Microsoft.EntityFrameworkCore;
+using HotelListing.Api.Contracts;
 
 namespace HotelListing.Api.Services;
 
