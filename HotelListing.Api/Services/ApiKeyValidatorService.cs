@@ -1,8 +1,9 @@
-﻿using HotelListing.Api.Contracts;
-using Microsoft.EntityFrameworkCore;
+﻿﻿using HotelListing.Api.Contracts;
 using HotelListing.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
-namespace HotelListing.Api.Contracts;
+namespace HotelListing.Api.Services;
+
 
 public class ApiKeyValidatorService(HotelListingDbContext db) : IApiKeyValidatorService
 {
@@ -14,9 +15,8 @@ public class ApiKeyValidatorService(HotelListingDbContext db) : IApiKeyValidator
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.Key == apiKey, ct);
 
-        if (apiKeyEntity == null) return false;
+        if (apiKeyEntity is null) return false;
 
         return apiKeyEntity.IsActive;
-
     }
 }
