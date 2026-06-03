@@ -1,5 +1,4 @@
-﻿using HotelListing.Api.DTOs.Hotel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace HotelListing.Api.DTOs.Country;
 
@@ -12,5 +11,4 @@ public class CreateCountryDto
     [Required]
     [MaxLength(3)]
     public required string ShortName { get; set; }
-
 }
