@@ -21,6 +21,9 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<HotelListingDbContext>();
 
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,7 +50,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ICountriesService, CountriesService>();
 builder.Services.AddScoped<IHotelsService, HotelsService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
+
+
+
 
 builder.Services.AddAutoMapper(cfg => {
     cfg.AddProfile<HotelMappingProfile>();

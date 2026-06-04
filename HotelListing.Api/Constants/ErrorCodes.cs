@@ -1,4 +1,4 @@
-﻿namespace HotelListing.Api.Constants;
+﻿namespace HotelListing.Api.Results;
 
 public static class ErrorCodes
 {
