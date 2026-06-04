@@ -1,22 +1,27 @@
-@HotelListing.Api_HostAddress = https://localhost:7142
+@HotelListing.Api_HostAddress = https://localhost:7124
 @json = application/json
 @apiKey=dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzrbd29yZDE=
-@token = inserttoken
+@token = inserthere
 @id=3
-@countryId=90
+@countryId=6
 @pageSize=5
 
-
-
-
-
-
-
 GET {{HotelListing.Api_HostAddress}}/api/countries
-Authorization: Bearer 
+#Authorization: Bearer {{token}}
+###
+
+GET {{HotelListing.Api_HostAddress}}/api/countries?Search=United
+Authorization: Bearer {{token}}
+###
+
+# Get Country Hotels - Large Page Size
+GET {{HotelListing.Api_HostAddress}}/api/countries/{{countryId}}/hotels?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+###
 
 POST {{HotelListing.Api_HostAddress}}/api/countries
-Authorization: Bearer 
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
 
 {
   "name": "Test Admin Country",
@@ -26,10 +31,14 @@ Authorization: Bearer
 ###
 
 DELETE {{HotelListing.Api_HostAddress}}/api/countries/{{id}}
-Authorization: Bearer 
+Authorization: Bearer inserthere
 ###
 
 GET {{HotelListing.Api_HostAddress}}/api/countries/{{id}}
+###
+
+GET {{HotelListing.Api_HostAddress}}/api/countries/
+Authorization: Bearer {{token}}
 
 ###
 
@@ -42,15 +51,28 @@ Content-Type: {{json}}
 }
 ###
 
+PATCH {{HotelListing.Api_HostAddress}}/api/countries/{{countryId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json-patch+json
+
+[
+  {
+    "op": "replace",  
+    "path": "/shortName",
+    "value": "TAC"
+  }
+]
+###
+
 GET {{HotelListing.Api_HostAddress}}/api/hotels
-Authorization: Bearer 
+Authorization: Bearer inserthere
+###
 
 POST {{HotelListing.Api_HostAddress}}/api/hotels
 Content-Type: {{json}}
-Authorization: Bearer 
-
+Authorization: Bearer inserthere
 {
-  "Name": "Moon Palace",
+  "Name": "Jewels Runaway Bay",
   "Address": "Ocho Rios, Jamaica",
   "Rating": 5,
   "CountryId": 3
@@ -63,6 +85,7 @@ DELETE {{HotelListing.Api_HostAddress}}/api/hotels/{{id}}
 ###
 
 GET {{HotelListing.Api_HostAddress}}/api/hotels/{{id}}
+Authorization: Bearer {{token}}
 
 ###
 
@@ -119,19 +142,17 @@ Content-Type: application/json
 
 ###
 
-
 GET {{HotelListing.Api_HostAddress}}/api/apikey
 X-Api-Key: {{apiKey}}
 
 ###
-
 
 GET {{HotelListing.Api_HostAddress}}/api/basicauth
 Authorization: Basic dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzd29yZDE=
 
 ###
 
-PUT {{HotelListing.Api_HostAddress}}/api/hotels/{hotelId:int}/bookings/{bookingId:int}/admin/cancel
-Authorization: Bearer 
 
+PUT {{HotelListing.Api_HostAddress}}/api/hotels/1/bookings/1/admin/cancel
+Authorization: Bearer inserthere
 ###

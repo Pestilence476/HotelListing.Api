@@ -1,128 +1,88 @@
 using HotelListing.Api.Application.Contracts;
-using HotelListing.Api.Application.DTOs.Auth;
+using HotelListing.Api.Application.DTOs.Country;
+using HotelListing.Api.Application.DTOs.Hotel;
 using HotelListing.Api.Common.Constants;
-using HotelListing.Api.Common.Models.Config;
-using HotelListing.Api.Common.Results;
-using HotelListing.Api.Domain;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using HotelListing.Api.Common.Models.Filtering;
+using HotelListing.Api.Common.Models.Paging;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
-namespace HotelListing.Api.Application.Services;
+namespace HotelListing.Api.Controllers;
 
-public class UsersService(UserManager<ApplicationUser> userManager, HotelListingDbContext hotelListingDbContext, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor) : IUsersService
+[Route("api/[controller]")]
+[ApiController]
+public class CountriesController(ICountriesService countriesService) : BaseApiController
 {
-    public async Task<Result<RegisteredUserDto>> RegisterAsync(RegisterUserDto registerUserDto)
+    // GET: api/Countries
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<GetCountriesDto>>> GetCountries(
+        [FromQuery] CountryFilterParameters? filters)
     {
-        var user = new ApplicationUser
-        {
-            Email = registerUserDto.Email,
-            FirstName = registerUserDto.FirstName,
-            LastName = registerUserDto.LastName,
-            UserName = registerUserDto.Email
-        };
-
-        var result = await userManager.CreateAsync(user, registerUserDto.Password);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(e => new Error(ErrorCodes.BadRequest, e.Description)).ToArray();
-            return Result<RegisteredUserDto>.BadRequest(errors);
-        }
-
-        await userManager.AddToRoleAsync(user, registerUserDto.Role);
-
-        // If Hotel Admin, add to HotelAdmins table
-        if (registerUserDto.Role == RoleNames.HotelAdmin)
-        {
-            var hotelAdmin = hotelListingDbContext.HotelAdmins.Add(
-                new HotelAdmin
-                {
-                    UserId = user.Id,
-                    HotelId = registerUserDto.AssociatedHotelId.GetValueOrDefault()
-                });
-            await hotelListingDbContext.SaveChangesAsync();
-        }
-
-        var registeredUser = new RegisteredUserDto
-        {
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Id = user.Id,
-            Role = registerUserDto.Role,
-        };
-
-        // Optional: Send confirmation Email
-        return Result<RegisteredUserDto>.Success(registeredUser);
+        var result = await countriesService.GetCountriesAsync(filters);
+        return ToActionResult(result);
     }
 
-    public async Task<Result<string>> LoginAsync(LoginUserDto dto)
+    // GET: api/Countries/{id}/hotels
+    [HttpGet("{countryId:int}/hotels")]
+    public async Task<ActionResult<GetCountryHotelsDto>> GetCountryHotels(
+        [FromRoute] int countryId,
+        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] CountryFilterParameters filters)
     {
-        var user = await userManager.FindByEmailAsync(dto.Email);
-        if (user is null)
-        {
-            return Result<string>.Failure(new Error(ErrorCodes.BadRequest, "Invalid credentials."));
-        }
-
-        var valid = await userManager.CheckPasswordAsync(user, dto.Password);
-        if (!valid)
-        {
-            return Result<string>.Failure(new Error(ErrorCodes.BadRequest, "Invalid credentials."));
-        }
-
-        // Issue a token
-        var token = await GenerateToken(user);
-
-        return Result<string>.Success(token);
+        var result = await countriesService.GetCountryHotelsAsync(countryId, paginationParameters, filters);
+        return ToActionResult(result);
     }
 
-    public string UserId => httpContextAccessor?
-            .HttpContext?
-            .User?
-            .FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-        ?? httpContextAccessor?
-            .HttpContext?
-            .User?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value
-        ?? string.Empty;
-
-    private async Task<string> GenerateToken(ApplicationUser user)
+    // GET: api/Countries/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<GetCountryDto>> GetCountry(int id)
     {
-        // Set basic user claims
-        var claims = new List<Claim>
-        {
-            new (JwtRegisteredClaimNames.Sub, user.Id),
-            new (JwtRegisteredClaimNames.Email, user.Email!),
-            new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new (JwtRegisteredClaimNames.Name, user.FullName)
-        };
-
-        // Set user role claims
-        var roles = await userManager.GetRolesAsync(user);
-        var roleClaims = roles.Select(x => new Claim(ClaimTypes.Role, x)).ToList();
-
-        claims = claims.Union(roleClaims).ToList();
-
-        // Set JWT Key credentials
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.Key));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        // Create an encoded token
-        var token = new JwtSecurityToken(
-            issuer: jwtOptions.Value.Issuer,
-            audience: jwtOptions.Value.Audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(jwtOptions.Value.DurationInMinutes)),
-            signingCredentials: credentials
-            );
-
-        // Return token value
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var result = await countriesService.GetCountryAsync(id);
+        return ToActionResult(result);
     }
 
+    // PUT: api/Countries/5
+    [HttpPut("{id}")]
+    [Authorize(Roles = RoleNames.Administrator)]
+    public async Task<IActionResult> PutCountry(int id, UpdateCountryDto updateDto)
+    {
+        var result = await countriesService.UpdateCountryAsync(id, updateDto);
+        return ToActionResult(result);
+    }
+
+    // PATCH: api/Countries/5
+    [HttpPatch("{id}")]
+    [Authorize(Roles = RoleNames.Administrator)]
+    public async Task<IActionResult> PatchCountry(int id, [FromBody] JsonPatchDocument<UpdateCountryDto> patchDoc)
+    {
+        if (patchDoc == null)
+        {
+            return BadRequest("Patch document is required.");
+        }
+
+        var result = await countriesService.PatchCountryAsync(id, patchDoc);
+        return ToActionResult(result);
+    }
+
+    // POST: api/Countries
+    [HttpPost]
+    [Authorize(Roles = RoleNames.Administrator)]
+    public async Task<ActionResult<GetCountryDto>> PostCountry(CreateCountryDto createDto)
+    {
+        var result = await countriesService.CreateCountryAsync(createDto);
+        if (!result.IsSuccess) return MapErrorsToResponse(result.Errors);
+
+        return CreatedAtAction(nameof(GetCountry), new { id = result.Value!.Id }, result.Value);
+    }
+
+    // DELETE: api/Countries/5
+    [HttpDelete("{id}")]
+    [Authorize(Roles = RoleNames.Administrator)]
+    public async Task<IActionResult> DeleteCountry(int id)
+    {
+        var result = await countriesService.DeleteCountryAsync(id);
+        return ToActionResult(result);
+    }
 }

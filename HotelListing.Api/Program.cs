@@ -1,6 +1,8 @@
+using AutoMapper;
 using HotelListing.Api.Application.Contracts;
 using HotelListing.Api.Application.MappingProfiles;
 using HotelListing.Api.Application.Services;
+using HotelListing.Api.CachePolicies;
 using HotelListing.Api.Common.Constants;
 using HotelListing.Api.Common.Models.Config;
 using HotelListing.Api.Domain;
@@ -10,13 +12,33 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the IoC container.
 var connectionString = builder.Configuration.GetConnectionString("HotelListingDbConnectionString");
-builder.Services.AddDbContext<HotelListingDbContext>(options => options.UseSqlServer(connectionString));
+
+builder.Services.AddDbContextPool<HotelListingDbContext>(options => {
+    options.UseSqlServer(connectionString, sqlOptions => {
+        sqlOptions.CommandTimeout(30);
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null
+        );
+    });
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
+
+    // ? Optional: Global no-tracking (only if most operations are read-only)
+    // options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+}, poolSize: 128);
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -46,7 +68,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
         ClockSkew = TimeSpan.Zero // Default is 5 minutes
     };
 })
@@ -64,12 +86,15 @@ builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
 builder.Services.AddAutoMapper(cfg => { }, typeof(HotelMappingProfile).Assembly);
 
 builder.Services.AddControllers()
+    .AddNewtonsoftJson()
     .AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+
 
 var app = builder.Build();
 
@@ -84,6 +109,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseOutputCache();
 
 app.MapControllers();
 

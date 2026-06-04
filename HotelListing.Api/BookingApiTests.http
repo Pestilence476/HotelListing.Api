@@ -3,8 +3,9 @@
 @host=https://localhost:7124
 @hotelId=3
 @bookingId=7
+@countryId=1
 @today={{$localDatetime iso8601}} 
-//@token =
+@token = inserthere
 ###
 POST {{host}}/api/auth/register
 Content-Type: application/json
@@ -169,4 +170,9 @@ PUT {{host}}/api/hotels/{{hotelId}}/bookings/{{bookingId}}/cancel
 GET {{host}}/api/hotels/{{hotelId}}/bookings/admin
 Authorization: Bearer {{token}}
 
+GET {{host}}/api/hotels?pageNumber=3&pageSize=20&minRating=4.1
+Authorization: Bearer {{token}}
 ###
+
+GET {{host}}/api/countries/1/hotels?search=o
+Authorization: Bearer {{token}}

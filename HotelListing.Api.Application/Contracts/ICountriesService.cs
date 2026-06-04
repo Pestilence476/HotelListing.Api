@@ -1,8 +1,10 @@
-﻿using HotelListing.Api.Application.DTOs.Country;
+﻿using Azure;
+using HotelListing.Api.Application.DTOs.Country;
 using HotelListing.Api.Application.DTOs.Hotel;
 using HotelListing.Api.Common.Models.Filtering;
 using HotelListing.Api.Common.Models.Paging;
 using HotelListing.Api.Common.Results;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace HotelListing.Api.Application.Contracts;
 
@@ -16,4 +18,6 @@ public interface ICountriesService
     Task<Result<GetCountryHotelsDto>> GetCountryHotelsAsync(int countryId, PaginationParameters paginationParameters, CountryFilterParameters filters);
     Task<Result<GetCountryDto>> GetCountryAsync(int id);
     Task<Result> UpdateCountryAsync(int id, UpdateCountryDto updateDto);
+    Task<Result> PatchCountryAsync(int id,JsonPatchDocument<UpdateCountryDto> patchDoc);
+
 }
