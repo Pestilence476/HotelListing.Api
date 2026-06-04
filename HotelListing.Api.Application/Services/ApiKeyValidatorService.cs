@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelListing.Api.Application.Services;
 
-
+// Validate API keys against the database
 public class ApiKeyValidatorService(HotelListingDbContext db) : IApiKeyValidatorService
 {
     public async Task<bool> IsValidAsync(string apiKey, CancellationToken ct = default)
@@ -17,6 +17,7 @@ public class ApiKeyValidatorService(HotelListingDbContext db) : IApiKeyValidator
 
         if (apiKeyEntity is null) return false;
 
+        // If there is no expiry date or the expiry date does not exceed today's date.
         return apiKeyEntity.IsActive;
     }
 }

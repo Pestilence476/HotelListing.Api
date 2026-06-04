@@ -1,21 +1,27 @@
 ﻿using HotelListing.Api.Application.Contracts;
 using HotelListing.Api.Application.DTOs.Auth;
 using HotelListing.Api.Common.Constants;
-using HotelListing.Api.Common.Models;
+using HotelListing.Api.Common.Models.Config;
 using HotelListing.Api.Common.Results;
 using HotelListing.Api.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace HotelListing.Api.Application.Services;
 
-public class UsersService(UserManager<ApplicationUser> userManager,HotelListingDbContext hotelListingDbContext, IOptions<JwtSettings> jwtOptions,
-    IHttpContextAccessor httpContextAccessor) : IUsersService
+public class UsersService(
+    UserManager<ApplicationUser> userManager,
+    HotelListingDbContext hotelListingDbContext,
+    IOptions<JwtSettings> jwtOptions,
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<UsersService> logger) : IUsersService
 {
     public async Task<Result<RegisteredUserDto>> RegisterAsync(RegisterUserDto registerUserDto)
     {
@@ -31,10 +37,25 @@ public class UsersService(UserManager<ApplicationUser> userManager,HotelListingD
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => new Error(ErrorCodes.BadRequest, e.Description)).ToArray();
+
+            logger.LogError("User registration failed for {Email}: {Errors}", registerUserDto.Email, string.Join(", ", errors));
+
             return Result<RegisteredUserDto>.BadRequest(errors);
         }
 
         await userManager.AddToRoleAsync(user, registerUserDto.Role);
+
+        // If Hotel Admin, add to HotelAdmins table
+        if (registerUserDto.Role == RoleNames.HotelAdmin)
+        {
+            var hotelAdmin = hotelListingDbContext.HotelAdmins.Add(
+                new HotelAdmin
+                {
+                    UserId = user.Id,
+                    HotelId = registerUserDto.AssociatedHotelId.GetValueOrDefault()
+                });
+            await hotelListingDbContext.SaveChangesAsync();
+        }
 
         var registeredUser = new RegisteredUserDto
         {
@@ -54,6 +75,7 @@ public class UsersService(UserManager<ApplicationUser> userManager,HotelListingD
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user is null)
         {
+            logger.LogWarning("Failed login attempt for email: {Email}", dto.Email);
             return Result<string>.Failure(new Error(ErrorCodes.BadRequest, "Invalid credentials."));
         }
 
@@ -72,11 +94,11 @@ public class UsersService(UserManager<ApplicationUser> userManager,HotelListingD
     public string UserId => httpContextAccessor?
             .HttpContext?
             .User?
-            .FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+            .FindFirst(JwtRegisteredClaimNames.Sub)?.Value
         ?? httpContextAccessor?
             .HttpContext?
             .User?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            .FindFirst(ClaimTypes.NameIdentifier)?.Value
         ?? string.Empty;
 
     private async Task<string> GenerateToken(ApplicationUser user)
@@ -85,7 +107,7 @@ public class UsersService(UserManager<ApplicationUser> userManager,HotelListingD
         var claims = new List<Claim>
         {
             new (JwtRegisteredClaimNames.Sub, user.Id),
-            new (JwtRegisteredClaimNames.Email, user.Email),
+            new (JwtRegisteredClaimNames.Email, user.Email!),
             new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new (JwtRegisteredClaimNames.Name, user.FullName)
         };
@@ -97,7 +119,7 @@ public class UsersService(UserManager<ApplicationUser> userManager,HotelListingD
         claims = claims.Union(roleClaims).ToList();
 
         // Set JWT Key credentials
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.Key ?? string.Empty));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         // Create an encoded token

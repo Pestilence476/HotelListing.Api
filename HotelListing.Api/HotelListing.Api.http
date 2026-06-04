@@ -1,9 +1,16 @@
 @HotelListing.Api_HostAddress = https://localhost:7142
 @json = application/json
 @apiKey=dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzrbd29yZDE=
-
-###
+@token = inserttoken
 @id=3
+@countryId=90
+@pageSize=5
+
+
+
+
+
+
 
 GET {{HotelListing.Api_HostAddress}}/api/countries
 Authorization: Bearer 

@@ -1,5 +1,4 @@
-﻿using HotelListing.Api.Domain;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotelListing.Api.Domain.Configurations;
@@ -12,11 +11,11 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
         builder.HasData(
             new ApiKey
             {
-                //Guid values
                 Id = 1,
                 AppName = "app",
-                CreatedAtUtc = new DateTime(2026, 06, 03),
-                Key = "dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzd29yZDE="
+                CreatedAtUtc = new DateTime(2025, 01, 01),
+                Key = "dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzrbd29yZDE="
+
             }
         );
     }

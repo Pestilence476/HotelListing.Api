@@ -26,6 +26,10 @@ public class CountryMappingProfile : Profile
         CreateMap<Country, GetCountriesDto>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.CountryId));
         CreateMap<CreateCountryDto, Country>();
+        CreateMap<Country, UpdateCountryDto>()
+            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.CountryId))
+            .ReverseMap()
+            .ForMember(d => d.CountryId, opt => opt.MapFrom(s => s.Id));
     }
 }
 
@@ -63,4 +67,4 @@ public sealed class BookingMappingProfile : Profile
             .ForMember(d => d.UpdatedAtUtc, o => o.Ignore())
             .ForMember(d => d.Hotel, o => o.Ignore());
     }
-} 
+}

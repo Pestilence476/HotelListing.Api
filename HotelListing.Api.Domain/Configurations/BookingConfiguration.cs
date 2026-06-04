@@ -1,5 +1,4 @@
-﻿using HotelListing.Api.Domain;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotelListing.Api.Domain.Configurations;
@@ -14,6 +13,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.HotelId);
-        builder.HasIndex(x => new {x.CheckIn, x.CheckOut});
+        builder.HasIndex(x => new { x.CheckIn, x.CheckOut });
     }
 }

@@ -1,4 +1,4 @@
-﻿using HotelListing.Api.Domain.Enums;
+﻿using HotelListing.Api.Common.Enums;
 
 namespace HotelListing.Api.Domain;
 
@@ -12,7 +12,7 @@ public class Booking
     public required string UserId { get; set; }
     public ApplicationUser? User { get; set; }
 
-    public DateOnly CheckIn {  get; set; }
+    public DateOnly CheckIn { get; set; }
     public DateOnly CheckOut { get; set; }
     public int Guests { get; set; }
 
