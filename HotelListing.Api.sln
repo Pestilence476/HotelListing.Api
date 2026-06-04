@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Api.Common", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Api.Domain", "HotelListing.Api.Domain\HotelListing.Api.Domain.csproj", "{F066F953-7B32-415B-9FA1-E5DACD80ACC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Api.Application", "HotelListing.Api.Application\HotelListing.Api.Application.csproj", "{6A06DE24-8E25-46CA-8AF8-F16670287273}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{F066F953-7B32-415B-9FA1-E5DACD80ACC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F066F953-7B32-415B-9FA1-E5DACD80ACC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F066F953-7B32-415B-9FA1-E5DACD80ACC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A06DE24-8E25-46CA-8AF8-F16670287273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A06DE24-8E25-46CA-8AF8-F16670287273}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A06DE24-8E25-46CA-8AF8-F16670287273}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A06DE24-8E25-46CA-8AF8-F16670287273}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
