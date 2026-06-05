@@ -1,4 +1,4 @@
-@HotelListing.Api_HostAddress = https://localhost:7124
+@HotelListing.Api_HostAddress = https://localhost:7142
 @json = application/json
 @apiKey=dXNlcjFAbG9jYWxob3N0LmNvbTpQQHNzrbd29yZDE=
 @token = inserthere
